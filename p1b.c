@@ -6,20 +6,14 @@
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
 int main(int argc, char *argv[]) {
-    if (argc < 2) {
-        printf("Error: Please provide p (square root of total threads).\n");
-        return 1;
-    }
     int p = atoi(argv[1]);
     int num_threads = p * p;
     omp_set_num_threads(num_threads);
-
     int i, j, k;
     struct timespec start, stop; 
     double time;
     int n = 2048; 
-    int b = 8; // Fixed block size of 8 as requested
-    
+    int b = 8;
     double **A = (double**) malloc (sizeof(double*)*n);
     double **B = (double**) malloc (sizeof(double*)*n);
     double **C = (double**) malloc (sizeof(double*)*n);
@@ -39,7 +33,6 @@ int main(int argc, char *argv[]) {
             
     if( clock_gettime(CLOCK_REALTIME, &start) == -1) { perror("clock gettime");}
     
-    // Parallelized Block Matrix Multiplication
     int ii, jj, kk;
     #pragma omp parallel for private(jj, kk, i, j, k) shared(A, B, C, n, b)
     for (ii = 0; ii < n; ii += b) {
@@ -65,7 +58,6 @@ int main(int argc, char *argv[]) {
     printf("Execution time = %f sec\n", time);
     printf("C[100][100]=%f\n", C[100][100]);
     
-    // release memory
     for (i=0; i<n; i++) {
         free(A[i]); free(B[i]); free(C[i]);
     }

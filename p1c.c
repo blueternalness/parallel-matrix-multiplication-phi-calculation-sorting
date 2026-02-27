@@ -4,19 +4,13 @@
 #include <omp.h>
 
 int main(int argc, char *argv[]) {
-    if (argc < 2) {
-        printf("Error: Please provide p (square root of total threads).\n");
-        return 1;
-    }
     int p = atoi(argv[1]);
     int num_threads = p * p;
     omp_set_num_threads(num_threads);
-
     int i, j, k;
     struct timespec start, stop; 
     double time;
     int n = 2048; 
-    
     double **A = (double**) malloc (sizeof(double*)*n);
     double **B = (double**) malloc (sizeof(double*)*n);
     double **B_T = (double**) malloc (sizeof(double*)*n); // Transposed B
@@ -32,20 +26,19 @@ int main(int argc, char *argv[]) {
         for(j=0; j< n; j++){
             A[i][j]=i;
             B[i][j]=i+j;
-            B_T[j][i]=i+j; // Store B transposed: B_T[row][col] is B[col][row]
+            B_T[j][i]=i+j;
             C[i][j]=0;          
         }
     }
             
     if( clock_gettime(CLOCK_REALTIME, &start) == -1) { perror("clock gettime");}
     
-    // Parallelized Naive Matrix Multiplication with Transposed B
     #pragma omp parallel for private(j, k) shared(A, B_T, C, n)
     for (i = 0; i < n; i++) {
         for (j = 0; j < n; j++) {
-            double sum = 0; // Using a local accumulator speeds up cache writes
+            double sum = 0;
             for (k = 0; k < n; k++) {
-                sum += A[i][k] * B_T[j][k]; // Sequential access for B_T
+                sum += A[i][k] * B_T[j][k];
             }
             C[i][j] = sum;
         }
@@ -58,7 +51,6 @@ int main(int argc, char *argv[]) {
     printf("Execution time = %f sec\n", time);
     printf("C[100][100]=%f\n", C[100][100]);
     
-    // release memory
     for (i=0; i<n; i++) {
         free(A[i]); free(B[i]); free(B_T[i]); free(C[i]);
     }

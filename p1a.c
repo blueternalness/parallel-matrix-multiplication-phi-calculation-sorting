@@ -4,14 +4,9 @@
 #include <omp.h>
 
 int main(int argc, char *argv[]) {
-    if (argc < 2) {
-        printf("Error: Please provide p (square root of total threads).\n");
-        return 1;
-    }
     int p = atoi(argv[1]);
     int num_threads = p * p;
     omp_set_num_threads(num_threads);
-
     int i, j, k;
     struct timespec start, stop; 
     double time;
@@ -32,11 +27,9 @@ int main(int argc, char *argv[]) {
             B[i][j]=i+j;
             C[i][j]=0;          
         }
-    }
-            
+    }            
     if( clock_gettime(CLOCK_REALTIME, &start) == -1) { perror("clock gettime");}
     
-    // Parallelized Naive Matrix Multiplication
     #pragma omp parallel for private(j, k) shared(A, B, C, n)
     for (i = 0; i < n; i++) {
         for (j = 0; j < n; j++) {
@@ -53,7 +46,6 @@ int main(int argc, char *argv[]) {
     printf("Execution time = %f sec\n", time);
     printf("C[100][100]=%f\n", C[100][100]);
     
-    // release memory
     for (i=0; i<n; i++) {
         free(A[i]); free(B[i]); free(C[i]);
     }
